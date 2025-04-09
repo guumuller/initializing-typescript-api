@@ -1,11 +1,8 @@
 import express, { Request, Response } from 'express';
-import { Produto } from './types/produto';
+import product_service from './service/product_service';
 
 const app = express();
 const port = 3000;
-
-let listaProdutos: Produto[] = [];
-let proximoId = 1;
 
 app.use(express.json());
 
@@ -15,80 +12,69 @@ app.get('/hello', (req: Request, res: Response) => {
 
 //listar produtos
 app.get('/api/produtos', (req: Request, res: Response) => {
-    res.json(listaProdutos);
+    res.json(product_service.list());
 })
 
 //inserir produto
 app.post('/api/produtos', async (req: Request, res: Response): Promise<any> => {
-    const produto = req.body;
-    if(!produto.nome || !produto.categoria || !produto.preco) {
-        return res.status(400).json({error: "Falta dados obrigatorios"});    
-    }
+    const product = req.body;
 
-    const novoProduto: Produto = {
-        id: proximoId++,
-        nome: produto.nome,
-        categoria: produto.categoria,
-        preco: produto.preco        
+    try {
+        let insertProduct = product_service.insert(product)
+        res.status(201).json(insertProduct);
+    } catch(err: any) {
+        res.status(err.is).json(err.msg);
     }
-
-    listaProdutos.push(novoProduto);
-    res.status(201).json(novoProduto);
 })
 
 //buscar produto por id
 app.get('/api/produtos/:id', async (req: Request, res: Response): Promise<any> => {
     const id = parseInt(req.params.id);
 
-    const produto = listaProdutos.find( function (prod) {
-        return (prod.id === id);
-    } )
-
-    if(!produto) {
-        return res.status(404).json(
-            {error: "Produto nao encontrado"}
-        );
+    try {
+        const product = product_service.searchById(id);
+        res.json(product);
+    } catch (err: any){
+        res.status(err.is).json(err.msg);
     }
-
-    res.json(produto);
 })
 
-//atualizar produto
-app.put('/api/produtos/:id', async (req: Request, res: Response): Promise<any> => {
-    const id = parseInt(req.params.id);
-    const { nome, categoria, preco } = req.body;
-    const produtoIndex = listaProdutos.findIndex(p => p.id === id);
+// //atualizar produto
+// app.put('/api/produtos/:id', async (req: Request, res: Response): Promise<any> => {
+//     const id = parseInt(req.params.id);
+//     const { name, category, price } = req.body;
+//     const productIndex = listProducts.findIndex(p => p.id === id);
 
-    if (produtoIndex === -1) {
-        return res.status(404).json({ error: 'Produto Não encontrado' });
-    }
+//     if (productIndex === -1) {
+//         return res.status(404).json({ error: 'Produto Não encontrado' });
+//     }
 
-    if (!nome || !categoria || preco === undefined) {
-        return res.status(400).json({ error: 'Falta dados obrigatorios' });
-    }
+//     if (!name || !category || price === undefined) {
+//         return res.status(400).json({ error: 'Falta dados obrigatorios' });
+//     }
 
-    listaProdutos[produtoIndex] = {
-      ...listaProdutos[produtoIndex], //mantém os outros dados de produto (id)
-        nome,
-        categoria,
-        preco
-    };
+//     listProducts[productIndex] = {
+//       ...listProducts[productIndex], //mantém os outros dados de produto (id)
+//         name,
+//         category,
+//         price
+//     };
 
-    res.json(listaProdutos[produtoIndex]);
-});
+//     res.json(listProducts[produtoIndex]);
+// });
 
-//deletar produto
-app.delete('/api/produtos/:id', async(req: Request, res: Response): Promise<any> => {
-    const id = parseInt(req.params.id);
-    const produtoIndex = listaProdutos.findIndex(p => p.id === id);
+// //deletar produto
+// app.delete('/api/produtos/:id', async(req: Request, res: Response): Promise<any> => {
+//     const id = parseInt(req.params.id);
+//     const productIndex = listProducts.findIndex(p => p.id === id);
 
-    if (produtoIndex === -1) {
-        return res.status(404).json({ error: 'produto not found' });
-    }
+//     if (productIndex === -1) {
+//         return res.status(404).json({ error: 'produto not found' });
+//     }
 
-    let produtoDeletado = listaProdutos.splice(produtoIndex, 1);
-    res.json(produtoDeletado);
-});
+//     let produtoDeletado = listProducts.splice(productIndex, 1);
+//     res.json(produtoDeletado);
+// });
 
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);
