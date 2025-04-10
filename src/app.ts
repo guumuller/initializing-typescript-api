@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import product_service from './service/product_service';
+import product_router from "./routers/product_router"
 
 const app = express();
 const port = 3000;
@@ -10,36 +10,10 @@ app.get('/hello', (req: Request, res: Response) => {
     res.json({ message: "Hello World" });
 })
 
-//listar produtos
-app.get('/api/produtos', (req: Request, res: Response) => {
-    res.json(product_service.list());
-})
+// trabalhando com produtos
+app.use("/api/produtos", product_router);
 
-//inserir produto
-app.post('/api/produtos', async (req: Request, res: Response): Promise<any> => {
-    const product = req.body;
-
-    try {
-        let insertProduct = product_service.insert(product)
-        res.status(201).json(insertProduct);
-    } catch(err: any) {
-        res.status(err.is).json(err.msg);
-    }
-})
-
-//buscar produto por id
-app.get('/api/produtos/:id', async (req: Request, res: Response): Promise<any> => {
-    const id = parseInt(req.params.id);
-
-    try {
-        const product = product_service.searchById(id);
-        res.json(product);
-    } catch (err: any){
-        res.status(err.is).json(err.msg);
-    }
-})
-
-// //atualizar produto
+// atualizar produto
 // app.put('/api/produtos/:id', async (req: Request, res: Response): Promise<any> => {
 //     const id = parseInt(req.params.id);
 //     const { name, category, price } = req.body;
