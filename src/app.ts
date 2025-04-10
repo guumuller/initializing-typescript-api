@@ -8,7 +8,7 @@ app.use(express.json());
 
 app.get('/hello', (req: Request, res: Response) => {
     res.json({ message: "Hello World" });
-})
+});
 
 // trabalhando com produtos
 app.use("/api/produtos", product_router);
